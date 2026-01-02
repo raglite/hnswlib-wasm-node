@@ -1,0 +1,51 @@
+{
+  "name": "hnswlib-wasm-node",
+  "version": "0.1.0",
+  "description": "Persistence layer for hnswlib-wasm with JSON and binary format support for Node.js",
+  "main": "./dist/index.cjs",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "hnswlib",
+    "hnswlib-wasm",
+    "vector-search",
+    "similarity-search",
+    "persistence",
+    "index",
+    "nearest-neighbor",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "peerDependencies": {
+    "hnswlib-wasm": "^0.8.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}

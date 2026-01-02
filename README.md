@@ -176,6 +176,114 @@ setLogger({
 
 ---
 
+## Core HNSWlib APIs
+
+The following APIs are provided by the underlying `hnswlib-wasm` library. This package wraps `hnswlib-wasm` to add persistence functionality. For complete API documentation, refer to [hnswlib-wasm](https://www.npmjs.com/package/hnswlib-wasm) and [hnswlib-node](https://www.npmjs.com/package/hnswlib-node).
+
+### `HierarchicalNSW(spaceName, numDimensions, autoSaveFilename)`
+
+Creates a new HNSW (Hierarchical Navigable Small World) index instance.
+
+```javascript
+const hnswlib = await loadHnswlib();
+const index = new hnswlib.HierarchicalNSW('l2', 128, '');
+```
+
+**Parameters**:
+- `spaceName` (string): The metric space to use. Must be one of:
+  - `'l2'` - Euclidean distance (L2 norm)
+  - `'ip'` - Inner product
+  - `'cosine'` - Cosine similarity
+- `numDimensions` (number): The dimensionality of the vectors
+- `autoSaveFilename` (string): Filename for automatic saving via Emscripten file system. Use `''` (empty string) to disable auto-save when using this package's persistence methods.
+
+**Returns**: `HierarchicalNSW` instance
+
+---
+
+### `initIndex(maxElements, m, efConstruction, randomSeed)`
+
+Initializes the index with construction parameters. Must be called before adding points.
+
+```javascript
+index.initIndex(1000, 16, 200, 100);
+```
+
+**Parameters**:
+- `maxElements` (number): Maximum number of elements the index can hold
+- `m` (number): Number of bi-directional links created for each new element during construction. Higher values improve recall but increase memory usage. Typical range: 12-48 (default: 16)
+- `efConstruction` (number): Size of the dynamic candidate list during construction. Higher values improve index quality but increase construction time. Typical range: 100-500 (default: 200)
+- `randomSeed` (number): Seed for the random number generator (default: 100)
+
+**Note**: These parameters cannot be changed after the index is created. Choose them carefully based on your dataset size and quality requirements.
+
+---
+
+### `addPoint(point, label, replaceDeleted)`
+
+Adds a single vector point to the index.
+
+```javascript
+index.addPoint([1.0, 2.0, 3.0, ...], 0, false);
+```
+
+**Parameters**:
+- `point` (Float32Array | number[]): The vector to add to the index
+- `label` (number): Unique identifier/label for this point
+- `replaceDeleted` (boolean): If `true`, allows reusing labels from previously deleted points. If `false` (default), deleted labels cannot be reused.
+
+**Throws**: `Error` if the point dimensions don't match the index dimensions, or if the label already exists (when `replaceDeleted` is `false`)
+
+---
+
+### `searchKnn(queryPoint, numNeighbors, filter)`
+
+Searches for the nearest neighbors of a query point.
+
+```javascript
+const results = index.searchKnn([1.0, 2.0, 3.0, ...], 5, undefined);
+// Returns: { neighbors: [0, 1, 2, 3, 4], distances: [0.1, 0.5, 0.8, 1.2, 1.5] }
+```
+
+**Parameters**:
+- `queryPoint` (Float32Array | number[]): The query vector to search for
+- `numNeighbors` (number): Number of nearest neighbors to return
+- `filter` (Function | undefined): Optional filter function that takes a label and returns `true` to include it in results, or `false` to exclude it. Use `undefined` to disable filtering.
+
+**Returns**: `SearchResult` object with:
+- `neighbors` (number[]): Array of labels of the nearest neighbors
+- `distances` (number[]): Array of distances to the nearest neighbors (corresponding to `neighbors`)
+
+**Example with filter**:
+```javascript
+// Only search in labels 10-20
+const filter = (label) => label >= 10 && label < 20;
+const results = index.searchKnn(queryPoint, 5, filter);
+```
+
+---
+
+### Additional Methods
+
+The `HierarchicalNSW` class provides many other useful methods:
+
+- `getCurrentCount()`: Returns the current number of points in the index
+- `getNumDimensions()`: Returns the dimensionality of the index
+- `getMaxElements()`: Returns the maximum number of elements
+- `getUsedLabels()`: Returns an array of all currently used labels
+- `getPoint(label)`: Retrieves a point by its label
+- `markDelete(label)`: Marks a point as deleted (won't appear in search results)
+- `unmarkDelete(label)`: Restores a previously deleted point
+- `removePoint(label)`: Permanently removes a point from the index
+- `resizeIndex(newMaxElements)`: Resizes the index to accommodate more elements
+- `setEfSearch(efSearch)`: Sets the search parameter (can be changed after construction)
+
+For complete API documentation, see:
+- [hnswlib-wasm documentation](https://github.com/shravansunder/hnswlib-wasm)
+- [hnswlib-node API documentation](https://yoshoku.github.io/hnswlib-node/doc/)
+
+---
+
 ## Format Comparison
 
 ### JSON Format (`.json`)

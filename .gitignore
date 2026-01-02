@@ -1,0 +1,8 @@
+node_modules/
+*.bin
+*.json
+!package.json
+!package-lock.json
+!tsup.config.js
+dist/
+
